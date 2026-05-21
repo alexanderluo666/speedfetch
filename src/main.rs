@@ -1,51 +1,60 @@
 use std::fs;
 use std::env;
 
-fn kernel(){
-    let kernel_info = fs::read_to_string("/proc/version").unwrap();
-    for lines in kernel_info.lines(){
-        println!("{}",lines);
-    }
-
-}
-
-fn os(){
-    let os_info = fs::read_to_string("/etc/os-release").unwrap();
-    for lines in os_info.lines(){
-        if lines.starts_with("PRETTY_NAME="){
-            println!("{}",lines.replace("PRETTY_NAME=", ""));
+fn os() -> String {
+    for line in fs::read_to_string("/etc/os-release").unwrap().lines() {
+        if line.starts_with("PRETTY_NAME=") {
+            return line.replace("PRETTY_NAME=", "").replace("\"", "");
         }
     }
+    return "Unknown OS".to_string();
 }
 
-fn shell(){
-    let shell_info = env::var("SHELL");
-    println!("{}", shell_info.expect("REASON").replace("/bin/", ""));
+fn kernel() -> String {
+    fs::read_to_string("/proc/version")
+        .unwrap()
+        .trim()
+        .to_string()
 }
 
-fn cpu(){
+fn shell() -> String {
+    env::var("SHELL")
+        .unwrap()
+        .replace("/bin/","")
+}
+
+fn cpu() -> String {
     let cpu_info = fs::read_to_string("/proc/cpuinfo").unwrap();
-    for lines in cpu_info.lines(){
-        if lines.starts_with("model name"){
-            println!("{}",lines);
-            break;
+    for line in cpu_info.lines(){
+        if line.starts_with("model name"){
+            return line.to_string();
         }
     }
+    return "Unknown CPU".to_string();
 }
 
-fn memory(){
-    let memory_info = fs::read_to_string("/proc/meminfo").unwrap();
-    for lines in memory_info.lines(){
-        if lines.starts_with("MemTotal:") || lines.starts_with("MemAvailable:"){
-            println!("{}",lines);
+fn memory() -> String {
+    let meminfo = fs::read_to_string("/proc/meminfo").unwrap();
+
+    let mut total = "";
+    let mut available = "";
+
+    for line in meminfo.lines() {
+        if line.starts_with("MemTotal:") {
+            total = line;
+        }
+        if line.starts_with("MemAvailable:") {
+            available = line;
         }
     }
+
+    format!("{}\n{}", total, available)
 }
 
 fn main() {
-    os();
-    kernel();
-    shell();
-    cpu();
-    memory();
+    println!("{}",os());
+    println!("{}",kernel());
+    println!("{}",shell());
+    println!("{}",cpu());
+    println!("{}",memory());
 }
