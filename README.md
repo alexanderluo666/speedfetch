@@ -2,7 +2,7 @@
 + This is speedfetch, used for displaying information and hardware in terminal made using Rust for Linux currently.
 ## Using the tool
 + Make sure that you are in the speedfetch folder.
-+ Make sure you have cargo and Rust if you want to build the tool from source code.
++ Make sure that you have cargo and Rust.
 + Run and compile binary from source code:
 ```bash
 cargo run

@@ -13,6 +13,9 @@ fn os() -> String {
 fn kernel() -> String {
     fs::read_to_string("/proc/version")
         .unwrap()
+        .split("x86_64")
+        .next()
+        .unwrap()
         .trim()
         .to_string()
 }
@@ -20,14 +23,17 @@ fn kernel() -> String {
 fn shell() -> String {
     env::var("SHELL")
         .unwrap()
-        .replace("/bin/","")
+        .split("/")
+        .last()
+        .unwrap()
+        .to_string()
 }
 
 fn cpu() -> String {
     let cpu_info = fs::read_to_string("/proc/cpuinfo").unwrap();
     for line in cpu_info.lines(){
         if line.starts_with("model name"){
-            return line.to_string();
+            return line.split(": ").nth(1).expect("REASON").to_string();
         }
     }
     return "Unknown CPU".to_string();
@@ -47,7 +53,6 @@ fn memory() -> String {
             available = line;
         }
     }
-
     format!("{}\n{}", total, available)
 }
 
