@@ -11,10 +11,8 @@ fn os() -> String {
 }
 
 fn kernel() -> String {
-    fs::read_to_string("/proc/version")
-        .unwrap()
-        .trim()
-        .to_string()
+    let kernel_info = fs::read_to_string("/proc/sys/kernel/osrelease").unwrap().trim().to_string();
+    format!("Linux {}", kernel_info)
 }
 
 fn shell() -> String {
