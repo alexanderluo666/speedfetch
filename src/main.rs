@@ -52,13 +52,21 @@ fn memory() -> String {
     }
     total = total.split("kB").next().unwrap().trim();
     total_kb = total.parse::<f64>().unwrap();
+    available = available.split("kB").next().unwrap().trim();
+    available_kb = available.parse::<f64>().unwrap();
     if total_kb > 1024.0*1024.0{
         total_kb = total_kb / 1024.0 / 1024.0;
+        available_kb = available_kb / 1024.0 / 1024.0;
     } else {
         total_kb = total_kb / 1024.0;
+        available_kb = available_kb / 1024.0;
     }
     total_kb = (total_kb * 10.0).round() / 10.0;
-    return total_kb.to_string();
+    available_kb = (available_kb * 10.0).round() / 10.0;
+    let used_kb = ((total_kb - available_kb) * 10.0).round() / 10.0;
+    let mut used_percentage = (used_kb / total_kb)*100.0;
+    used_percentage = (used_percentage * 10.0).round() / 10.0;
+    format!("{}GB / {}GB {}%",used_kb,total_kb,used_percentage)
 }
 
 fn get_logo(){
@@ -72,13 +80,17 @@ fn get_logo(){
     println!("{}",distro);
 }
 fn render(){
-    let width = 46;
+    let info: Vec<String> = vec![
+        format!("OS: {}",os()),
+        format!("Kernel: {}",kernel())
+    ];
+    let width = info.iter().map(|s| s.len()).max().unwrap();
     println!("┌{}┐", "─".repeat(width + 2));
     println!("│ {:<width$} │", format!("OS: {}", os()));
     println!("│ {:<width$} │", format!("Kernel: {}", kernel()));
     println!("│ {:<width$} │", format!("Shell: {}", shell()));
     println!("│ {:<width$} │", format!("CPU: {}", cpu()));
-    println!("│ {:<width$} │", format!("Memory: {}GB", memory()));
+    println!("│ {:<width$} │", format!("Memory: {}", memory()));
     println!("└{}┘", "─".repeat(width + 2));
 }
 
