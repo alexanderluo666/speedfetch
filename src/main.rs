@@ -72,14 +72,16 @@ fn get_logo(){
     println!("{}",distro);
 }
 fn render(){
-    println!("{}",os());
-    println!("{}",kernel());
-    println!("{}",shell());
-    println!("{}",cpu());
-    println!("{}",memory());
+    let width = 46;
+    println!("┌{}┐", "─".repeat(width + 2));
+    println!("│ {:<width$} │", format!("OS: {}", os()));
+    println!("│ {:<width$} │", format!("Kernel: {}", kernel()));
+    println!("│ {:<width$} │", format!("Shell: {}", shell()));
+    println!("│ {:<width$} │", format!("CPU: {}", cpu()));
+    println!("│ {:<width$} │", format!("Memory: {}GB", memory()));
+    println!("└{}┘", "─".repeat(width + 2));
 }
 
 fn main() {
-    get_logo();
     render();
 }
