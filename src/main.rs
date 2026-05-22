@@ -1,6 +1,7 @@
 use std::fs;
 use std::env;
 use std::cmp::max;
+use unicode_width::UnicodeWidthStr;
 
 fn os() -> String {
     for line in fs::read_to_string("/etc/os-release").unwrap().lines() {
@@ -92,7 +93,7 @@ fn render(){
         format!("Nothing yet...")
     ];
     let top_right: Vec<String> = vec![
-        format!("OS {}",os()),
+        format!("OS: {}",os()),
         format!("Kernel: {}", kernel()),
         format!("Shell: {}",shell())
     ];
@@ -105,18 +106,21 @@ fn render(){
         format!("Memory: {}", memory())
     ];
 
-    let top_left_width = top_left.iter().map(|s| s.len()).max().unwrap();
-    let top_right_width = top_right.iter().map(|s| s.len()).max().unwrap();
-    let bottom_left_width = bottom_left.iter().map(|s| s.len()).max().unwrap();
-    let bottom_right_width = bottom_right.iter().map(|s| s.len()).max().unwrap();
+    let top_left_width = top_left.iter().map(|s| s.width()).max().unwrap();
+    let top_right_width = top_right.iter().map(|s| s.width()).max().unwrap();
+    let bottom_left_width = bottom_left.iter().map(|s| s.width()).max().unwrap();
+    let bottom_right_width = bottom_right.iter().map(|s| s.width()).max().unwrap();
 
     let top_height = max(top_left.len(),top_right.len());
     let bottom_height = max(bottom_left.len(),bottom_right.len());
-    let left_width = max(top_left.iter().map(|s| s.len()).max().unwrap(),bottom_left.iter().map(|s| s.len()).max().unwrap());
-    let right_width = max(top_right.iter().map(|s| s.len()).max().unwrap(),bottom_right.iter().map(|s| s.len()).max().unwrap());
+    let left_width = max(top_left.iter().map(|s| s.width()).max().unwrap(),bottom_left.iter().map(|s| s.width()).max().unwrap());
+    let right_width = max(top_right.iter().map(|s| s.width()).max().unwrap(),bottom_right.iter().map(|s| s.width()).max().unwrap());
 
     let gap = 4;
+    let width = left_width + gap + right_width;
 
+    println!("┌{}┐", "─".repeat(width as usize));
+    
     for i in 0..top_height{
         let full_line = format!(
             "{:<left_width$}{}{}",
@@ -124,8 +128,10 @@ fn render(){
             " ".repeat(gap as usize),
             top_right[i]
         );
-        println!("{}",full_line);
+        println!("│{:width$}│", full_line);
     }
+
+    println!("│{:width$}│", " ");
 
     for i in 0..bottom_height{
         let full_line = format!(
@@ -134,8 +140,10 @@ fn render(){
             " ".repeat(gap as usize),
             bottom_right[i]
         );
-        println!("{}",full_line);
+        println!("│{:width$}│", full_line);
     }
+
+    println!("└{}┘", "─".repeat(width as usize));
 }
 
 fn main() {
