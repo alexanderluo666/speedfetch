@@ -87,14 +87,16 @@ fn uptime() -> String {
 fn gpu() -> String {
     let output = Command::new("lspci").output().unwrap();
 
-    let mut gpu_info = String::from_utf8(output.stdout)
+    String::from_utf8(output.stdout)
         .unwrap_or_default()
         .lines()
         .find(|l| l.contains("VGA") || l.contains("3D") || l.contains("Display"))
         .unwrap_or("Unknown GPU")
-        .to_string();
-    gpu_info = gpu_info.split("controller").last().unwrap().to_string();
-    return gpu_info
+        .split(':')
+        .last()
+        .unwrap_or("Unknown GPU")
+        .trim()
+        .to_string()
 }
 
 fn get_logo(){
