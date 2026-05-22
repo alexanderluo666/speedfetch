@@ -61,10 +61,25 @@ fn memory() -> String {
     return total_kb.to_string();
 }
 
-fn main() {
+fn get_logo(){
+    let distro_info = fs::read_to_string("/etc/os-release").unwrap();
+    let mut distro = "";
+    for line in distro_info.lines(){
+        if line.starts_with("ID"){
+            distro = &line.split("ID=").last().unwrap();
+        }
+    }
+    println!("{}",distro);
+}
+fn render(){
     println!("{}",os());
     println!("{}",kernel());
     println!("{}",shell());
     println!("{}",cpu());
     println!("{}",memory());
+}
+
+fn main() {
+    get_logo();
+    render();
 }
