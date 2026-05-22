@@ -1,5 +1,6 @@
 use std::fs;
 use std::env;
+use std::cmp::max;
 
 fn os() -> String {
     for line in fs::read_to_string("/etc/os-release").unwrap().lines() {
@@ -85,21 +86,56 @@ fn get_logo(){
 }
 
 fn render(){
-    let info: Vec<String> = vec![
-        format!("OS: {}",os()),
-        format!("Kernel: {}",kernel()),
-        format!("Shell: {}",shell()),
-        format!("CPU: {}",cpu()),
-        format!("Memory: {}",memory())
+    let top_left: Vec<String> = vec![
+        format!("Nothing yet..."),
+        format!("Nothing yet..."),
+        format!("Nothing yet...")
     ];
-    let width = info.iter().map(|s| s.len()).max().unwrap();
-    println!("┌{}┐", "─".repeat(width + 2));
-    println!("│ {:<width$} │", format!("OS: {}", os()));
-    println!("│ {:<width$} │", format!("Kernel: {}", kernel()));
-    println!("│ {:<width$} │", format!("Shell: {}", shell()));
-    println!("│ {:<width$} │", format!("CPU: {}", cpu()));
-    println!("│ {:<width$} │", format!("Memory: {}", memory()));
-    println!("└{}┘", "─".repeat(width + 2));
+    let top_right: Vec<String> = vec![
+        format!("OS {}",os()),
+        format!("Kernel: {}", kernel()),
+        format!("Shell: {}",shell())
+    ];
+    let bottom_left: Vec<String> = vec![
+        format!("Nothing yet..."),
+        format!("Nothing yet...")
+    ];
+    let bottom_right: Vec<String> = vec![
+        format!("CPU: {}", cpu()),
+        format!("Memory: {}", memory())
+    ];
+
+    let top_left_width = top_left.iter().map(|s| s.len()).max().unwrap();
+    let top_right_width = top_right.iter().map(|s| s.len()).max().unwrap();
+    let bottom_left_width = bottom_left.iter().map(|s| s.len()).max().unwrap();
+    let bottom_right_width = bottom_right.iter().map(|s| s.len()).max().unwrap();
+
+    let top_height = max(top_left.len(),top_right.len());
+    let bottom_height = max(bottom_left.len(),bottom_right.len());
+    let left_width = max(top_left.iter().map(|s| s.len()).max().unwrap(),bottom_left.iter().map(|s| s.len()).max().unwrap());
+    let right_width = max(top_right.iter().map(|s| s.len()).max().unwrap(),bottom_right.iter().map(|s| s.len()).max().unwrap());
+
+    let gap = 4;
+
+    for i in 0..top_height{
+        let full_line = format!(
+            "{:<left_width$}{}{}",
+            top_left[i],
+            " ".repeat(gap as usize),
+            top_right[i]
+        );
+        println!("{}",full_line);
+    }
+
+    for i in 0..bottom_height{
+        let full_line = format!(
+            "{:<left_width$}{}{}",
+            bottom_left[i],
+            " ".repeat(gap as usize),
+            bottom_right[i]
+        );
+        println!("{}",full_line);
+    }
 }
 
 fn main() {
