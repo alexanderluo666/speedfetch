@@ -178,7 +178,7 @@ fn logo() -> Vec<String> {
         ];
     }
 
-    // fallback
+
     vec![
         "  _____           _        ".to_string(),
         " |  __ \\         | |       ".to_string(),
@@ -230,26 +230,36 @@ fn compose() -> Vec<String> {
     right_column.extend(system);
     right_column.extend(hardware);
 
+    let height = max(left_column.len(), right_column.len());
 
-    let max_height = left_column.len().max(right_column.len());
+    let mut left_width = 0;
 
-    while left_column.len() < max_height {
+    for line in &left_column {
+        let line_width = line.width();
+
+        if line_width > left_width {
+        left_width = line_width;
+        }
+    }
+
+    while left_column.len() < height {
         left_column.push(String::new());
     }
 
-    while right_column.len() < max_height {
+    while right_column.len() < height {
         right_column.push(String::new());
     }
 
     let gap = 4;
     let mut output = Vec::new();
 
-    for i in 0..max_height {
+    for i in 0..height {
         let line = format!(
-            "{:<30}{}{}",
-            left_column[i],
+            "{:<left_width$}{}{}",
+            &left_column[i],
             " ".repeat(gap),
-            right_column[i]
+            &right_column[i],
+            left_width = left_width
         );
 
         output.push(line);
