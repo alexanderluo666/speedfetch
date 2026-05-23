@@ -4,6 +4,7 @@ use std::cmp::max;
 use unicode_width::UnicodeWidthStr;
 use std::process::Command;
 mod logos;
+mod utils;
 
 struct Panel {
     title: String,
@@ -203,7 +204,7 @@ fn compose() -> Vec<String> {
     let mut left_width = 0;
 
     for line in &left_column {
-        let line_width = line.width();
+        let line_width = utils::strip_ansi(line).width();
 
         if line_width > left_width {
         left_width = line_width;
