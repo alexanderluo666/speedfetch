@@ -4,6 +4,63 @@ use std::cmp::max;
 use unicode_width::UnicodeWidthStr;
 use std::process::Command;
 
+struct Panel {
+    title: String,
+    items: Vec<String>,
+    width: usize
+}
+
+impl Panel {
+    fn new(title: String, items: Vec<String>) -> Self {
+        Self {
+            title,
+            items,
+            width: 0,
+        }
+    }
+
+    fn compute_width(&self) -> usize {
+        let content_width = self
+            .items
+            .iter()
+            .map(|s| s.width())
+            .max()
+            .unwrap_or(0);
+
+        let title_width = self.title.width();
+
+        std::cmp::max(content_width, title_width) + 4
+    }
+
+    fn render(&self) -> Vec<String> {
+        let width = self.compute_width();
+        let inner_width = width - 4;
+        let mut lines = Vec::new();
+
+        lines.push(format!("┌{}┐", "─".repeat(width - 2)));
+
+        lines.push(format!(
+            "│ {:<width$} │",
+            self.title,
+            width = inner_width
+        ));
+
+        lines.push(format!("├{}┤", "─".repeat(width - 2)));
+
+        for item in &self.items {
+            lines.push(format!(
+                "│ {:<width$} │",
+                item,
+                width = inner_width
+            ));
+        }
+
+        lines.push(format!("└{}┘", "─".repeat(width - 2)));
+
+        lines
+    }
+}
+
 fn os() -> String {
     for line in fs::read_to_string("/etc/os-release").unwrap().lines() {
         if line.starts_with("PRETTY_NAME=") {
@@ -99,78 +156,114 @@ fn gpu() -> String {
         .to_string()
 }
 
-fn get_logo(){
+fn logo() -> Vec<String> {
     let distro_info = fs::read_to_string("/etc/os-release").unwrap();
-    let mut distro = "";
-    for line in distro_info.lines(){
-        if line.starts_with("ID"){
-            distro = &line.split("ID=").last().unwrap();
+    let mut distro = "unknown";
+
+    for line in distro_info.lines() {
+        if line.starts_with("ID=") {
+            distro = line.trim_start_matches("ID=").trim_matches('"');
+            break;
         }
     }
+
+    if distro.contains("fedora") {
+        return vec![
+            "  _____        _                  ".to_string(),
+            " |  ___|__  __| | ___  _ __ __ _  ".to_string(),
+            " | |_ / _ \\/ _` |/ _ \\| '__/ _` | ".to_string(),
+            " |  _|  __/ (_| | (_) | | | (_| | ".to_string(),
+            " |_|  \\___|\\__,_|\\___/|_|  \\__,_| ".to_string(),
+            "                                  ".to_string(),
+        ];
+    }
+
+    // fallback
+    vec![
+        "  _____           _        ".to_string(),
+        " |  __ \\         | |       ".to_string(),
+        " | |  | | ___  __| | ___   ".to_string(),
+        " | |  | |/ _ \\/ _` |/ _ \\  ".to_string(),
+        " | |__| |  __/ (_| | (_) | ".to_string(),
+        " |_____/ \\___|\\__,_|\\___/  ".to_string(),
+    ]
 }
 
-fn render(){
-    let top_left: Vec<String> = vec![
-        format!("Nothing yet..."),
-        format!("Nothing yet..."),
-        format!("Nothing yet...")
-    ];
-    let top_right: Vec<String> = vec![
-        format!("OS: {}",os()),
-        format!("Kernel: {}", kernel()),
-        format!("Shell: {}",shell())
-    ];
-    let bottom_left: Vec<String> = vec![
-        format!("Nothing yet..."),
-        format!("Nothing yet..."),
-        format!("Nothing yet..."),
-        format!("Nothing yet...")
-    ];
-    let bottom_right: Vec<String> = vec![
-        format!("CPU: {}", cpu()),
-        format!("GPU: {}", gpu()),
-        format!("Memory: {}", memory()),
-        format!("Uptime: {} minutes", uptime())
-    ];
+fn compose() -> Vec<String> {
+    let system_panel = Panel::new(
+        "System".to_string(),
+        vec![
+            format!("OS: {}", os()),
+            format!("Kernel: {}", kernel()),
+            format!("Shell: {}", shell()),
+        ],
+    );
 
-    let top_left_width = top_left.iter().map(|s| s.width()).max().unwrap();
-    let top_right_width = top_right.iter().map(|s| s.width()).max().unwrap();
-    let bottom_left_width = bottom_left.iter().map(|s| s.width()).max().unwrap();
-    let bottom_right_width = bottom_right.iter().map(|s| s.width()).max().unwrap();
+    let hardware_panel = Panel::new(
+        "Hardware".to_string(),
+        vec![
+            format!("CPU: {}", cpu()),
+            format!("GPU: {}", gpu()),
+            format!("Memory: {}", memory()),
+        ],
+    );
 
-    let top_height = max(top_left.len(),top_right.len());
-    let bottom_height = max(bottom_left.len(),bottom_right.len());
-    let left_width = max(top_left.iter().map(|s| s.width()).max().unwrap(),bottom_left.iter().map(|s| s.width()).max().unwrap());
-    let right_width = max(top_right.iter().map(|s| s.width()).max().unwrap(),bottom_right.iter().map(|s| s.width()).max().unwrap());
+    let session_panel = Panel::new(
+        "Session".to_string(),
+        vec![
+            format!("Uptime: {} minutes", uptime()),
+        ],
+    );
+
+    let logo_lines = logo();
+
+    let system = system_panel.render();
+    let hardware = hardware_panel.render();
+    let session = session_panel.render();
+
+
+    let mut left_column = Vec::new();
+    left_column.extend(logo_lines);
+    left_column.extend(session);
+
+    let mut right_column = Vec::new();
+    right_column.extend(system);
+    right_column.extend(hardware);
+
+
+    let max_height = left_column.len().max(right_column.len());
+
+    while left_column.len() < max_height {
+        left_column.push(String::new());
+    }
+
+    while right_column.len() < max_height {
+        right_column.push(String::new());
+    }
 
     let gap = 4;
-    let width = left_width + gap + right_width;
+    let mut output = Vec::new();
 
-    println!("┌{}┐", "─".repeat(width as usize));
-    
-    for i in 0..top_height{
-        let full_line = format!(
-            "{:<left_width$}{}{}",
-            top_left[i],
-            " ".repeat(gap as usize),
-            top_right[i]
+    for i in 0..max_height {
+        let line = format!(
+            "{:<30}{}{}",
+            left_column[i],
+            " ".repeat(gap),
+            right_column[i]
         );
-        println!("│{:width$}│", full_line);
+
+        output.push(line);
     }
 
-    println!("│{:width$}│", " ");
+    output
+}
 
-    for i in 0..bottom_height{
-        let full_line = format!(
-            "{:<left_width$}{}{}",
-            bottom_left[i],
-            " ".repeat(gap as usize),
-            bottom_right[i]
-        );
-        println!("│{:width$}│", full_line);
+fn render() {
+    let lines = compose();
+
+    for line in lines {
+        println!("{}", line);
     }
-
-    println!("└{}┘", "─".repeat(width as usize));
 }
 
 fn main() {
