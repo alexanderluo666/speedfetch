@@ -213,10 +213,15 @@ fn compose() -> Vec<String> {
     let registry = theme::ThemeRegistry::from(&config);
     let theme = registry.get(&distro);
 
-    let logo_lines = entry.logo
-        .iter()
-        .map(|line| theme.logo(line))
-        .collect::<Vec<String>>();
+    let logo_lines = if let Some((start, end)) = theme::Theme::logo_gradient_stops(&distro) {
+        theme.logo_gradient(&entry.logo, start, end)
+    } else {
+        entry
+            .logo
+            .iter()
+            .map(|line| theme.logo(line))
+            .collect()
+    };
 
     let system_panel = Panel::new(
         "System".into(),
