@@ -1,26 +1,43 @@
 use std::fs;
 
-pub fn logo() -> Vec<String> {
-    let distro_info = fs::read_to_string("/etc/os-release").unwrap();
-    let mut distro = "unknown";
+pub struct Branding {
+    pub logo: Vec<String>,
+    pub theme: crate::theme::Theme,
+}
 
-    for line in distro_info.lines() {
-        if line.starts_with("ID=") {
-            distro = line.trim_start_matches("ID=").trim_matches('"');
-            break;
+fn distro() -> String {
+    if let Ok(fake) = std::env::var("DISTRO") {
+        return fake;
+    }
+
+    let data = fs::read_to_string("/etc/os-release").unwrap();
+
+    let mut id = None;
+
+    for line in data.lines() {
+        let line = line.trim();
+
+        if let Some(v) = line.strip_prefix("ID=") {
+            id = Some(v.trim_matches('"').to_string());
         }
     }
-    
-    let fedora: Vec<String> = vec![
+
+    id.unwrap_or_else(|| "unknown".to_string())
+}
+
+pub fn branding() -> Branding {
+    let distro = distro();
+
+    let fedora_logo: Vec<String> = vec![
         "  _____        _                  ".to_string(),
         " |  ___|__  __| | ___  _ __ __ _  ".to_string(),
         " | |_ / _ \\/ _` |/ _ \\| '__/ _` | ".to_string(),
         " |  _|  __/ (_| | (_) | | | (_| | ".to_string(),
         " |_|  \\___|\\__,_|\\___/|_|  \\__,_| ".to_string(),
-        "                                 ".to_string(),
+        "                                  ".to_string(),
     ];
 
-    let ubuntu: Vec<String> = vec![
+    let ubuntu_logo: Vec<String> = vec![
         "  _   _ _                 _         ".to_string(),
         " | | | | |__  _   _ _ __ | |_ _   _ ".to_string(),
         " | | | | '_ \\| | | | '_ \\| __| | | |".to_string(),
@@ -29,7 +46,7 @@ pub fn logo() -> Vec<String> {
         "                                    ".to_string(),
     ];
 
-    let debian: Vec<String> = vec![
+    let debian_logo: Vec<String> = vec![
         "  ____       _     _             ".to_string(),
         " |  _ \\  ___| |__ (_) __ _ _ __  ".to_string(),
         " | | | |/ _ \\ '_ \\| |/ _` | '_ \\ ".to_string(),
@@ -38,7 +55,16 @@ pub fn logo() -> Vec<String> {
         "                                 ".to_string(),
     ];
 
-    let unknown: Vec<String> = vec![
+    let arch_logo: Vec<String> = vec![
+        "     _             _     ".to_string(),
+        "    / \\   _ __ ___| |__  ".to_string(),
+        "   / _ \\ | '__/ __| '_ \\ ".to_string(),
+        "  / ___ \\| | | (__| | | |".to_string(),
+        " /_/   \\_\\_|  \\___|_| |_|".to_string(),
+        "                         ".to_string(),
+    ];
+
+    let unknown_logo: Vec<String> = vec![
         "  _   _       _                              ".to_string(),
         " | | | |_ __ | | ___ __   _____      ___ __  ".to_string(),
         " | | | | '_ \\| |/ / '_ \\ / _ \\ \\ /\\ / / '_ \\ ".to_string(),
@@ -46,11 +72,29 @@ pub fn logo() -> Vec<String> {
         "  \\___/|_| |_|_|\\_\\_| |_|\\___/ \\_/\\_/ |_| |_|".to_string(),
         "                                             ".to_string(),
     ];
+    println!("DISTRO DETECTED: '{}'", distro);
+    match distro.as_str() {
+        "fedora" => Branding {
+            logo: fedora_logo,
+            theme: crate::theme::Theme::fedora(),
+        },
+        
+        "ubuntu" => Branding {
+            logo: ubuntu_logo,
+            theme: crate::theme::Theme::ubuntu(),
+        },
 
-    match distro{
-        "fedora" => return fedora,
-        "ubuntu" => return ubuntu,
-        "debian" => return debian,
-        _ => return unknown,
+        "debian" => Branding {
+            logo: debian_logo,
+            theme: crate::theme::Theme::debian(),
+        },
+        "arch" => Branding {
+            logo: arch_logo,
+            theme: crate::theme::Theme::arch()
+        },
+        _ => Branding {
+            logo: unknown_logo,
+            theme: crate::theme::Theme::unknown(),
+        },
     }
 }

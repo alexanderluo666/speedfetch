@@ -160,7 +160,8 @@ fn gpu() -> String {
 }
 
 fn compose() -> Vec<String> {
-    let theme = theme::Theme::fedora();
+    let branding = logos::branding();
+    let theme = branding.theme;
 
 
     let system_panel = Panel::new(
@@ -188,7 +189,7 @@ fn compose() -> Vec<String> {
         ],
     );
 
-    let logo_lines = logos::logo()
+    let logo_lines = branding.logo
         .iter()
         .map(|line| theme.logo(line))
         .collect::<Vec<String>>();
