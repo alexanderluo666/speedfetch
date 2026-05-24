@@ -41,8 +41,9 @@ speedfetch --distro ubuntu
 ## Features
 
 + Animated RGB gradient logos with motion blur (~30 FPS)
-+ 70+ distro logos in `src/config.toml` and `src/distro_logos.toml`
-+ Gradient presets for 80+ distro IDs (see `src/distro_styles.rs`)
++ **75+ authentic ASCII logos** from [fastfetch](https://github.com/fastfetch-cli/fastfetch) in `src/distro_logos.toml`
++ Per-distro panel themes (logo/label/value colors) for every logo entry
++ Animated gradient presets matched to each distro family (see `src/distro_styles.rs`)
 + Panels: System, Session, Hardware, Display
 
 ### Panel fields

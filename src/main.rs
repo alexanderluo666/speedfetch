@@ -130,7 +130,12 @@ fn compose(config: &Config, distro: &str, animator: &theme::GradientAnimator) ->
     let entry = resolve_inheritance(config, entry);
 
     let registry = theme::ThemeRegistry::from(config);
-    let theme = registry.get(distro);
+    let theme_key = if config.distro.contains_key(distro) {
+        distro
+    } else {
+        distro_styles::logo_family(distro)
+    };
+    let theme = registry.get(theme_key);
 
     let logo_lines = theme.render_logo(&entry.logo, distro, animator);
 
