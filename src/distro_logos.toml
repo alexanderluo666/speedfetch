@@ -1,0 +1,808 @@
+# Additional distro logos (merged into config at load time)
+
+[distro.manjaro]
+inherits = ""
+logo = [
+" ███▄   ▄▄████▄  ",
+" ██ ▀███▀▀   ██  ",
+" ██    ██    ██  ",
+" ██    ▀▀    ▀▀  ",
+"                 ",
+]
+
+[distro.manjaro.theme]
+logo = "cyan"
+label = "green"
+value = "white"
+
+[distro.linuxmint]
+inherits = ""
+logo = [
+" ___________ ",
+"|_          _|",
+"  | |____| |  ",
+"  |  ____  |  ",
+"  | |    | |  ",
+"  |_|    |_|  ",
+"              ",
+]
+
+[distro.linuxmint.theme]
+logo = "cyan"
+label = "green"
+value = "white"
+
+[distro.pop]
+inherits = ""
+logo = [
+"  ______    ",
+" |  __ \\   ",
+" | |__) |  ",
+" |  ___/   ",
+" | |       ",
+" |_|       ",
+"           ",
+]
+
+[distro.pop.theme]
+logo = "orange"
+label = "purple"
+value = "white"
+
+[distro.rocky]
+inherits = ""
+logo = [
+"    ____     ",
+"   / __ \\    ",
+"  / /  / /   ",
+" / /__/ /    ",
+" \\____/      ",
+"             ",
+]
+
+[distro.rocky.theme]
+logo = "blue"
+label = "cyan"
+value = "white"
+
+[distro.almalinux]
+inherits = ""
+logo = [
+"  ___  _    ",
+" / _ \\| |   ",
+"| |_| | |   ",
+" \\___/|_|   ",
+"            ",
+]
+
+[distro.almalinux.theme]
+logo = "blue"
+label = "orange"
+value = "white"
+
+[distro.centos]
+inherits = ""
+logo = [
+"    ___    ",
+"   /   \\   ",
+"  |  O  |  ",
+"   \\___/   ",
+"           ",
+]
+
+[distro.centos.theme]
+logo = "purple"
+label = "red"
+value = "white"
+
+[distro.rhel]
+inherits = "centos"
+
+[distro.rhel.theme]
+logo = "red"
+label = "white"
+value = "white"
+
+[distro.endeavouros]
+inherits = ""
+logo = [
+"    /\\    ",
+"   /  \\   ",
+"  /    \\  ",
+" /  /\\  \\ ",
+"/__/  \\__\\",
+"          ",
+]
+
+[distro.endeavouros.theme]
+logo = "cyan"
+label = "purple"
+value = "white"
+
+[distro.garuda]
+inherits = ""
+logo = [
+"   ,__ __,  ",
+"  /_ /_ /_\\ ",
+"    /  \\   ",
+"   /    \\  ",
+"  /      \\ ",
+"           ",
+]
+
+[distro.garuda.theme]
+logo = "cyan"
+label = "magenta"
+value = "white"
+
+[distro.nobara]
+inherits = ""
+logo = [
+"  _   _     ",
+" | \\ | |    ",
+" |  \\| |___ ",
+" | . ` / _ \\",
+" |_|\\_\\___/ ",
+"            ",
+]
+
+[distro.nobara.theme]
+logo = "orange"
+label = "cyan"
+value = "white"
+
+[distro.cachyos]
+inherits = ""
+logo = [
+"   _____   ",
+"  / ___/   ",
+" / /       ",
+" \\ \\___    ",
+"  \\___/    ",
+"           ",
+]
+
+[distro.cachyos.theme]
+logo = "cyan"
+label = "orange"
+value = "white"
+
+[distro.artix]
+inherits = ""
+logo = [
+"     A     ",
+"    / \\    ",
+"   /   \\   ",
+"  /     \\  ",
+" /_______\\ ",
+"           ",
+]
+
+[distro.artix.theme]
+logo = "cyan"
+label = "dim"
+value = "white"
+
+[distro.parrot]
+inherits = ""
+logo = [
+"  ____  ",
+" | __ ) ",
+" |  _ \\ ",
+" | |_) |",
+" |____/ ",
+"        ",
+]
+
+[distro.parrot.theme]
+logo = "cyan"
+label = "green"
+value = "white"
+
+[distro.devuan]
+inherits = ""
+logo = [
+"  ____  ",
+" |  _ \\ ",
+" | | | |",
+" | |_| |",
+" |____/ ",
+"        ",
+]
+
+[distro.devuan.theme]
+logo = "red"
+label = "dim"
+value = "white"
+
+[distro.zorin]
+inherits = ""
+logo = [
+"  _____  ",
+" |__  /  ",
+"   / /   ",
+"  / /_   ",
+" /____|  ",
+"         ",
+]
+
+[distro.zorin.theme]
+logo = "cyan"
+label = "green"
+value = "white"
+
+[distro.neon]
+inherits = ""
+logo = [
+"  _  _  ",
+" | \\| | ",
+" | .  | ",
+" |_|\\_| ",
+"        ",
+"        ",
+]
+
+[distro.neon.theme]
+logo = "cyan"
+label = "purple"
+value = "white"
+
+[distro.kubuntu]
+inherits = "ubuntu"
+
+[distro.kubuntu.theme]
+logo = "cyan"
+label = "blue"
+value = "white"
+
+[distro.lubuntu]
+inherits = "ubuntu"
+
+[distro.lubuntu.theme]
+logo = "orange"
+label = "dim"
+value = "white"
+
+[distro.xubuntu]
+inherits = "ubuntu"
+
+[distro.xubuntu.theme]
+logo = "cyan"
+label = "dim"
+value = "white"
+
+[distro.mint]
+inherits = "linuxmint"
+
+[distro.mint.theme]
+logo = "cyan"
+label = "green"
+value = "white"
+
+[distro.pop-os]
+inherits = "pop"
+
+[distro.pop-os.theme]
+logo = "orange"
+label = "purple"
+value = "white"
+
+[distro.opensuse-leap]
+inherits = "opensuse"
+
+[distro.opensuse-leap.theme]
+logo = "cyan"
+label = "green"
+value = "white"
+
+[distro.opensuse-tumbleweed]
+inherits = "opensuse"
+
+[distro.opensuse-tumbleweed.theme]
+logo = "cyan"
+label = "green"
+value = "white"
+
+[distro.voidlinux]
+inherits = "void"
+
+[distro.voidlinux.theme]
+logo = "cyan"
+label = "dim"
+value = "white"
+
+[distro.amazon]
+inherits = ""
+logo = [
+"     _    ",
+"    / \\   ",
+"   / _ \\  ",
+"  / ___ \\ ",
+" /_/   \\_\\",
+"          ",
+]
+
+[distro.amazon.theme]
+logo = "orange"
+label = "dim"
+value = "white"
+
+[distro.oracle]
+inherits = ""
+logo = [
+"  ___   ",
+" / _ \\  ",
+"| | | | ",
+"| |_| | ",
+" \\___/  ",
+"        ",
+]
+
+[distro.oracle.theme]
+logo = "red"
+label = "dim"
+value = "white"
+
+[distro.clear]
+inherits = ""
+logo = [
+"  ______ ",
+" |      |",
+" |      |",
+" |______|",
+"         ",
+"         ",
+]
+
+[distro.clear.theme]
+logo = "cyan"
+label = "blue"
+value = "white"
+
+[distro.mageia]
+inherits = ""
+logo = [
+"  __  __ ",
+" |  \\/  |",
+" | |\\/| |",
+" | |  | |",
+" |_|  |_|",
+"         ",
+]
+
+[distro.mageia.theme]
+logo = "cyan"
+label = "green"
+value = "white"
+
+[distro.pclinuxos]
+inherits = "mageia"
+
+[distro.pclinuxos.theme]
+logo = "blue"
+label = "cyan"
+value = "white"
+
+[distro.mx]
+inherits = ""
+logo = [
+"  __  __ ",
+" |  \\/  |",
+" | |\\/| |",
+" | |  | |",
+" |_|  |_|",
+"         ",
+]
+
+[distro.mx.theme]
+logo = "blue"
+label = "cyan"
+value = "white"
+
+[distro.tails]
+inherits = ""
+logo = [
+"  _______ ",
+" |__   __|",
+"    | |   ",
+"    | |   ",
+"    |_|   ",
+"          ",
+]
+
+[distro.tails.theme]
+logo = "purple"
+label = "dim"
+value = "white"
+
+[distro.qubes]
+inherits = ""
+logo = [
+"  ___  ",
+" / _ \\ ",
+" | | | |",
+" | |_| |",
+" \\___/ ",
+"       ",
+]
+
+[distro.qubes.theme]
+logo = "blue"
+label = "cyan"
+value = "white"
+
+[distro.freebsd]
+inherits = ""
+logo = [
+"  ______  ",
+" |______| ",
+"    /\\    ",
+"   /  \\   ",
+"  /    \\  ",
+"          ",
+]
+
+[distro.freebsd.theme]
+logo = "red"
+label = "dim"
+value = "white"
+
+[distro.ghostbsd]
+inherits = "freebsd"
+
+[distro.ghostbsd.theme]
+logo = "cyan"
+label = "dim"
+value = "white"
+
+[distro.raspbian]
+inherits = ""
+logo = [
+"   .---.   ",
+"  /     \\  ",
+" |  RPi  | ",
+"  \\     /  ",
+"   '---'   ",
+"           ",
+]
+
+[distro.raspbian.theme]
+logo = "red"
+label = "cyan"
+value = "white"
+
+[distro.raspberrypi]
+inherits = "raspbian"
+
+[distro.raspberrypi.theme]
+logo = "red"
+label = "cyan"
+value = "white"
+
+[distro.steamdeck]
+inherits = "steamos"
+
+[distro.steamdeck.theme]
+logo = "blue"
+label = "dim"
+value = "white"
+
+[distro.holo]
+inherits = "steamos"
+
+[distro.holo.theme]
+logo = "blue"
+label = "dim"
+value = "white"
+
+[distro.bedrock]
+inherits = ""
+logo = [
+"  ____  ",
+" | __ ) ",
+" |  _ \\ ",
+" | |_) |",
+" |____/ ",
+"        ",
+]
+
+[distro.bedrock.theme]
+logo = "orange"
+label = "dim"
+value = "white"
+
+[distro.guix]
+inherits = ""
+logo = [
+"  ___  ",
+" / __| ",
+" \\__ \\ ",
+" |___/ ",
+"       ",
+"       ",
+]
+
+[distro.guix.theme]
+logo = "cyan"
+label = "yellow"
+value = "white"
+
+[distro.antix]
+inherits = ""
+logo = [
+"  _  _  ",
+" | || | ",
+" | || | ",
+" |_||_| ",
+"        ",
+"        ",
+]
+
+[distro.antix.theme]
+logo = "dim"
+label = "white"
+value = "white"
+
+[distro.sparky]
+inherits = "debian"
+
+[distro.sparky.theme]
+logo = "orange"
+label = "yellow"
+value = "white"
+
+[distro.kinoite]
+inherits = "fedora"
+
+[distro.kinoite.theme]
+logo = "blue"
+label = "cyan"
+value = "white"
+
+[distro.silverblue]
+inherits = "fedora"
+
+[distro.silverblue.theme]
+logo = "blue"
+label = "cyan"
+value = "white"
+
+[distro.bluefin]
+inherits = "fedora"
+
+[distro.bluefin.theme]
+logo = "blue"
+label = "cyan"
+value = "white"
+
+[distro.bazzite]
+inherits = "fedora"
+
+[distro.bazzite.theme]
+logo = "orange"
+label = "cyan"
+value = "white"
+
+[distro.ultramarine]
+inherits = "fedora"
+
+[distro.ultramarine.theme]
+logo = "blue"
+label = "purple"
+value = "white"
+
+[distro.arcolinux]
+inherits = "arch"
+
+[distro.arcolinux.theme]
+logo = "cyan"
+label = "blue"
+value = "white"
+
+[distro.rebornos]
+inherits = "arch"
+
+[distro.rebornos.theme]
+logo = "cyan"
+label = "red"
+value = "white"
+
+[distro.chimera]
+inherits = ""
+logo = [
+"   /\\   ",
+"  /  \\  ",
+" /____\\ ",
+"        ",
+"        ",
+"        ",
+]
+
+[distro.chimera.theme]
+logo = "purple"
+label = "cyan"
+value = "white"
+
+[distro.feren]
+inherits = "ubuntu"
+
+[distro.feren.theme]
+logo = "cyan"
+label = "blue"
+value = "white"
+
+[distro.bodhi]
+inherits = "ubuntu"
+
+[distro.bodhi.theme]
+logo = "orange"
+label = "dim"
+value = "white"
+
+[distro.trisquel]
+inherits = "ubuntu"
+
+[distro.trisquel.theme]
+logo = "cyan"
+label = "green"
+value = "white"
+
+[distro.vanillaos]
+inherits = "debian"
+
+[distro.vanillaos.theme]
+logo = "white"
+label = "dim"
+value = "white"
+
+[distro.asahi]
+inherits = "fedora"
+
+[distro.asahi.theme]
+logo = "blue"
+label = "cyan"
+value = "white"
+
+[distro.postmarketos]
+inherits = "alpine"
+
+[distro.postmarketos.theme]
+logo = "blue"
+label = "cyan"
+value = "white"
+
+[distro.calculate]
+inherits = "gentoo"
+
+[distro.calculate.theme]
+logo = "purple"
+label = "blue"
+value = "white"
+
+[distro.funtoo]
+inherits = "gentoo"
+
+[distro.funtoo.theme]
+logo = "purple"
+label = "magenta"
+value = "white"
+
+[distro.hyperbola]
+inherits = ""
+logo = [
+"  _   _  ",
+" | | | | ",
+" | |_| | ",
+"  \\___/  ",
+"         ",
+"         ",
+]
+
+[distro.hyperbola.theme]
+logo = "dim"
+label = "white"
+value = "white"
+
+[distro.kiss]
+inherits = ""
+logo = [
+"  _  ",
+" | | ",
+" | | ",
+" |_| ",
+"     ",
+"     ",
+]
+
+[distro.kiss.theme]
+logo = "orange"
+label = "dim"
+value = "white"
+
+[distro.siduction]
+inherits = "debian"
+
+[distro.siduction.theme]
+logo = "cyan"
+label = "blue"
+value = "white"
+
+[distro.pureos]
+inherits = "debian"
+
+[distro.pureos.theme]
+logo = "purple"
+label = "cyan"
+value = "white"
+
+[distro.openmandriva]
+inherits = "mageia"
+
+[distro.openmandriva.theme]
+logo = "cyan"
+label = "green"
+value = "white"
+
+[distro.rosa]
+inherits = "mageia"
+
+[distro.rosa.theme]
+logo = "red"
+label = "pink"
+value = "white"
+
+[distro.alt]
+inherits = ""
+logo = [
+"  ___  ",
+" / _ \\ ",
+"| (_) |",
+" \\___/ ",
+"       ",
+"       ",
+]
+
+[distro.alt.theme]
+logo = "blue"
+label = "cyan"
+value = "white"
+
+[distro.astra]
+inherits = "debian"
+
+[distro.astra.theme]
+logo = "blue"
+label = "red"
+value = "white"
+
+[distro.android]
+inherits = ""
+logo = [
+"   ___   ",
+"  / _ \\  ",
+" | (_) | ",
+"  \\___/  ",
+"         ",
+"         ",
+]
+
+[distro.android.theme]
+logo = "green"
+label = "white"
+value = "white"
+
+[distro.chromeos]
+inherits = ""
+logo = [
+"  ____  ",
+" / ___| ",
+" | |    ",
+" | |___ ",
+"  \\____| ",
+"         ",
+]
+
+[distro.chromeos.theme]
+logo = "blue"
+label = "cyan"
+value = "white"

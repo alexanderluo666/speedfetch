@@ -1,11 +1,12 @@
-use std::env;
-use std::fs;
-use std::process::Command;
+use std::thread;
+use std::time::Duration;
 
 use unicode_width::UnicodeWidthStr;
 
 mod config;
 mod distro;
+mod distro_styles;
+mod info;
 mod loader;
 mod theme;
 mod utils;
@@ -69,101 +70,6 @@ impl Panel {
     }
 }
 
-fn os() -> String {
-    for line in fs::read_to_string("/etc/os-release").unwrap().lines() {
-        if line.starts_with("PRETTY_NAME=") {
-            return line.replace("PRETTY_NAME=", "").replace("\"", "");
-        }
-    }
-    return "Unknown OS".to_string();
-}
-
-fn kernel() -> String {
-    let kernel_info = fs::read_to_string("/proc/sys/kernel/osrelease").unwrap().trim().to_string();
-    format!("Linux {}", kernel_info)
-}
-
-fn shell() -> String {
-    env::var("SHELL")
-        .unwrap()
-        .split("/")
-        .last()
-        .unwrap()
-        .to_string()
-}
-
-fn cpu() -> String {
-    let cpu_info = fs::read_to_string("/proc/cpuinfo").unwrap();
-    for line in cpu_info.lines(){
-        if line.starts_with("model name"){
-            return line.split(": ").nth(1).expect("REASON").to_string();
-        }
-    }
-    return "Unknown CPU".to_string();
-}
-
-fn memory() -> String {
-    let meminfo = fs::read_to_string("/proc/meminfo").unwrap();
-
-    let mut total = "";
-    let mut available = "";
-    let mut total_kb: f64;
-    let mut available_kb: f64;
-
-    for line in meminfo.lines() {
-        if line.starts_with("MemTotal:") {
-            total = line.split(":").last().unwrap();
-        }
-        if line.starts_with("MemAvailable:") {
-            available = line.split(":").last().unwrap();
-        }
-    }
-
-    total = total.split("kB").next().unwrap().trim();
-    total_kb = total.parse::<f64>().unwrap();
-    available = available.split("kB").next().unwrap().trim();
-    available_kb = available.parse::<f64>().unwrap();
-
-    if total_kb > 1024.0*1024.0{
-        total_kb = total_kb / 1024.0 / 1024.0;
-        available_kb = available_kb / 1024.0 / 1024.0;
-    } else {
-        total_kb = total_kb / 1024.0;
-        available_kb = available_kb / 1024.0;
-    }
-
-    total_kb = (total_kb * 10.0).round() / 10.0;
-    available_kb = (available_kb * 10.0).round() / 10.0;
-
-    let used_kb = ((total_kb - available_kb) * 10.0).round() / 10.0;
-    let mut used_percentage = (used_kb / total_kb)*100.0;
-
-    used_percentage = (used_percentage * 10.0).round() / 10.0;
-    format!("{}GB / {}GB {}%",used_kb,total_kb,used_percentage)
-}
-
-fn uptime() -> String {
-    let uptime_info = fs::read_to_string("/proc/uptime").unwrap().split(" ").next().unwrap().to_string();
-    let mut uptime_minutes: f64 = uptime_info.parse().unwrap();
-    uptime_minutes = (uptime_minutes / 60.0).round();
-    return uptime_minutes.to_string()
-}
-
-fn gpu() -> String {
-    let output = Command::new("lspci").output().unwrap();
-
-    String::from_utf8(output.stdout)
-        .unwrap_or_default()
-        .lines()
-        .find(|l| l.contains("VGA") || l.contains("3D") || l.contains("Display"))
-        .unwrap_or("Unknown GPU")
-        .split(':')
-        .last()
-        .unwrap_or("Unknown GPU")
-        .trim()
-        .to_string()
-}
-
 fn get_distro() -> String {
     let mut args = std::env::args();
 
@@ -180,77 +86,104 @@ fn get_distro() -> String {
     distro::distro()
 }
 
-fn resolve_inheritance(
-    config: &Config,
-    entry: DistroConfig,
-) -> DistroConfig {
-    let mut current = entry;
-
-    while !current.inherits.is_empty() {
-        if let Some(parent) = config.distro.get(&current.inherits) {
-            current = parent.clone();
-        } else {
-            break;
-        }
+fn resolve_inheritance(config: &Config, entry: DistroConfig) -> DistroConfig {
+    if entry.inherits.is_empty() {
+        return entry;
     }
 
-    current
+    let child_theme = entry.theme;
+    let child_logo = entry.logo;
+    let parent_key = entry.inherits.clone();
+
+    let mut resolved = config
+        .distro
+        .get(&parent_key)
+        .map(|p| resolve_inheritance(config, p.clone()))
+        .unwrap_or_else(|| DistroConfig {
+            inherits: String::new(),
+            logo: child_logo.clone(),
+            theme: child_theme.clone(),
+        });
+
+    if !child_logo.is_empty() {
+        resolved.logo = child_logo;
+    }
+    resolved.theme = child_theme;
+    resolved.inherits = String::new();
+    resolved
 }
 
-fn compose() -> Vec<String> {
-    let config = loader::load_config();
-
-    let distro = get_distro();
+fn compose(config: &Config, distro: &str, animator: &theme::GradientAnimator) -> Vec<String> {
+    let logo_key = if config.distro.contains_key(distro) {
+        distro.to_string()
+    } else {
+        distro_styles::logo_family(distro).to_string()
+    };
 
     let entry = config
         .distro
-        .get(&distro)
-        .unwrap_or(config.distro.get("unknown").unwrap())
+        .get(&logo_key)
+        .or_else(|| config.distro.get("unknown"))
+        .expect("unknown distro must exist in config")
         .clone();
 
-    let entry = resolve_inheritance(&config, entry);
+    let entry = resolve_inheritance(config, entry);
 
-    let registry = theme::ThemeRegistry::from(&config);
-    let theme = registry.get(&distro);
+    let registry = theme::ThemeRegistry::from(config);
+    let theme = registry.get(distro);
 
-    let logo_lines = if let Some((start, end)) = theme::Theme::logo_gradient_stops(&distro) {
-        theme.logo_gradient(&entry.logo, start, end)
-    } else {
-        entry
-            .logo
-            .iter()
-            .map(|line| theme.logo(line))
-            .collect()
+    let logo_lines = theme.render_logo(&entry.logo, distro, animator);
+
+    let row = |label: &str, value: &str| {
+        format!("{} {}", theme.label(label), theme.value(value))
     };
 
     let system_panel = Panel::new(
         "System".into(),
         vec![
-            format!("{} {}", theme.label("OS:"), theme.value(&os())),
-            format!("{} {}", theme.label("Kernel:"), theme.value(&kernel())),
-            format!("{} {}", theme.label("Shell:"), theme.value(&shell())),
-        ],
-    );
-
-    let hardware_panel = Panel::new(
-        "Hardware".into(),
-        vec![
-            format!("{} {}", theme.label("CPU:"), theme.value(&cpu())),
-            format!("{} {}", theme.label("GPU:"), theme.value(&gpu())),
-            format!("{} {}", theme.label("Memory:"), theme.value(&memory())),
+            row("OS:", &info::os()),
+            row("Host:", &info::hostname()),
+            row("Kernel:", &info::kernel()),
+            row("Arch:", &info::arch()),
+            row("Init:", &info::init_system()),
+            row("Pkgs:", &info::packages()),
         ],
     );
 
     let session_panel = Panel::new(
         "Session".into(),
         vec![
-            format!("{} {}", theme.label("Uptime:"), theme.value(&uptime())),
+            row("User:", &info::user_host()),
+            row("Shell:", &info::shell()),
+            row("Term:", &info::terminal()),
+            row("DE/WM:", &info::de_wm()),
+            row("Uptime:", &info::uptime()),
+            row("Locale:", &info::locale()),
+        ],
+    );
+
+    let hardware_panel = Panel::new(
+        "Hardware".into(),
+        vec![
+            row("CPU:", &info::cpu()),
+            row("GPU:", &info::gpu()),
+            row("Memory:", &info::memory()),
+            row("Disk:", &info::disk()),
+        ],
+    );
+
+    let display_panel = Panel::new(
+        "Display".into(),
+        vec![
+            row("Res:", &info::resolution()),
+            row("Font:", &info::font()),
         ],
     );
 
     let system = system_panel.render();
-    let hardware = hardware_panel.render();
     let session = session_panel.render();
+    let hardware = hardware_panel.render();
+    let display = display_panel.render();
 
     let mut left = Vec::new();
     left.extend(logo_lines);
@@ -259,6 +192,7 @@ fn compose() -> Vec<String> {
     let mut right = Vec::new();
     right.extend(system);
     right.extend(hardware);
+    right.extend(display);
 
     let height = std::cmp::max(left.len(), right.len());
 
@@ -289,14 +223,25 @@ fn compose() -> Vec<String> {
     output
 }
 
-fn render() {
-    let lines = compose();
-
+fn print_frame(lines: &[String]) {
+    print!("\x1b[2J\x1b[H");
     for line in lines {
         println!("{}", line);
     }
 }
 
 fn main() {
-    render();
+    let distro = get_distro();
+    let config = loader::load_config();
+    let speed = theme::ThemeRegistry::from(&config)
+        .get(&distro)
+        .gradient_speed(&distro);
+
+    let mut animator = theme::GradientAnimator::new(speed);
+
+    loop {
+        animator.step();
+        print_frame(&compose(&config, &distro, &animator));
+        thread::sleep(Duration::from_millis(33));
+    }
 }

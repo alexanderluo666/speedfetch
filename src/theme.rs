@@ -1,4 +1,12 @@
 use crate::config::ThemeConfig;
+use crate::distro_styles::{self, DistroStyle};
+
+#[derive(Clone, Copy)]
+struct Rgb {
+    r: u8,
+    g: u8,
+    b: u8,
+}
 
 #[derive(Clone)]
 pub struct Theme {
@@ -10,6 +18,44 @@ pub struct Theme {
 
 pub struct ThemeRegistry {
     themes: std::collections::HashMap<String, Theme>,
+}
+
+pub struct GradientAnimator {
+    pub phase: f32,
+    pub speed: f32,
+    trail: [f32; 5],
+}
+
+impl GradientAnimator {
+    pub fn new(speed: f32) -> Self {
+        Self {
+            phase: 0.0,
+            speed,
+            trail: [0.0; 5],
+        }
+    }
+
+    pub fn step(&mut self) {
+        for i in (1..5).rev() {
+            self.trail[i] = self.trail[i - 1];
+        }
+        self.trail[0] = self.phase;
+
+        self.phase += self.speed;
+        if self.phase > 1.0 {
+            self.phase -= 1.0;
+        }
+    }
+
+    pub fn sample_phases(&self) -> [f32; 5] {
+        [
+            self.phase,
+            self.trail[0],
+            self.trail[1],
+            self.trail[2],
+            self.trail[3],
+        ]
+    }
 }
 
 impl ThemeRegistry {
@@ -51,71 +97,52 @@ impl Theme {
         }
     }
 
-    pub fn logo(&self, text: &str) -> String {
-        colorize(&self.logo_color, text, &self.reset)
+    pub fn gradient_speed(&self, distro: &str) -> f32 {
+        distro_styles::distro_style(distro).speed
     }
 
-    /// Default logo gradient color names per distro (start → end).
-    pub fn logo_gradient_stops(distro: &str) -> Option<(&'static str, &'static str)> {
-        match distro {
-            "fedora" => Some(("blue", "cyan")),
-            "ubuntu" => Some(("orange", "red")),
-            "debian" => Some(("red", "magenta")),
-            "arch" => Some(("cyan", "blue")),
-            "unknown" => Some(("gray", "white")),
-            _ => None,
-        }
+    pub fn render_logo(
+        &self,
+        lines: &[String],
+        distro: &str,
+        animator: &GradientAnimator,
+    ) -> Vec<String> {
+        let style = distro_styles::distro_style(distro);
+        let phases = animator.sample_phases();
+        lines
+            .iter()
+            .enumerate()
+            .map(|(i, line)| self.gradient_text(line, style, phases, i))
+            .collect()
     }
 
-    pub fn gradient(&self, text: &str, start_color: &str, end_color: &str) -> String {
-        if start_color.is_empty()
-            || end_color.is_empty()
-            || start_color == "none"
-            || end_color == "none"
-        {
-            return self.logo(text);
-        }
-
-        let Some((sr, sg, sb)) = color_rgb(start_color) else {
-            return self.logo(text);
-        };
-        let Some((er, eg, eb)) = color_rgb(end_color) else {
-            return self.logo(text);
-        };
-
+    fn gradient_text(
+        &self,
+        text: &str,
+        style: DistroStyle,
+        phases: [f32; 5],
+        line_index: usize,
+    ) -> String {
         let chars: Vec<char> = text.chars().collect();
-        if chars.is_empty() {
+        let len = chars.len();
+        if len == 0 {
             return String::new();
         }
 
-        let last = chars.len().saturating_sub(1);
-        let mut out = String::with_capacity(text.len() * 12);
+        let len_f = len as f32;
+        let line_shift = line_index as f32 * 0.06;
+        let weights = [0.42_f32, 0.24, 0.16, 0.10, 0.08];
+        let mut out = String::with_capacity(len * 18);
 
         for (i, ch) in chars.iter().enumerate() {
-            let t = if last == 0 { 0.0 } else { i as f32 / last as f32 };
-            let r = lerp_u8(sr, er, t);
-            let g = lerp_u8(sg, eg, t);
-            let b = lerp_u8(sb, eb, t);
-            out.push_str(&format!("\x1b[38;2;{r};{g};{b}m{ch}"));
+            let base = i as f32 / len_f + line_shift;
+            let color = blur_sample(style, base, &phases, style.blur, &weights);
+            write_ansi(&mut out, color);
+            out.push(*ch);
         }
 
         out.push_str(&self.reset);
         out
-    }
-
-    pub fn logo_gradient(&self, lines: &[String], start: &str, end: &str) -> Vec<String> {
-        if start.is_empty()
-            || end.is_empty()
-            || start == "none"
-            || end == "none"
-        {
-            return lines.iter().map(|l| self.logo(l)).collect();
-        }
-
-        lines
-            .iter()
-            .map(|line| self.gradient(line, start, end))
-            .collect()
     }
 
     pub fn label(&self, text: &str) -> String {
@@ -125,6 +152,107 @@ impl Theme {
     pub fn value(&self, text: &str) -> String {
         colorize(&self.value_color, text, &self.reset)
     }
+}
+
+fn blur_sample(
+    style: DistroStyle,
+    base_t: f32,
+    phases: &[f32; 5],
+    blur: f32,
+    weights: &[f32; 5],
+) -> Rgb {
+    let start = rgb_tuple(style.start);
+    let mid = rgb_tuple(style.mid);
+    let end = rgb_tuple(style.end);
+
+    let mut acc_r = 0.0_f32;
+    let mut acc_g = 0.0_f32;
+    let mut acc_b = 0.0_f32;
+    let mut w_sum = 0.0_f32;
+
+    for (phase, &w) in phases.iter().zip(weights.iter()) {
+        let mut pr = 0.0_f32;
+        let mut pg = 0.0_f32;
+        let mut pb = 0.0_f32;
+        let mut phase_w = 0.0_f32;
+
+        for k in 0..3 {
+            let offset = (k as f32 - 1.0) * blur;
+            let t = fract(base_t + phase + offset);
+            let c = sample_gradient(start, mid, end, t);
+            let kw = 1.0 - (k as f32 - 1.0).abs() * 0.35;
+            pr += c.r as f32 * kw;
+            pg += c.g as f32 * kw;
+            pb += c.b as f32 * kw;
+            phase_w += kw;
+        }
+
+        if phase_w > 0.0 {
+            pr /= phase_w;
+            pg /= phase_w;
+            pb /= phase_w;
+        }
+
+        acc_r += pr * w;
+        acc_g += pg * w;
+        acc_b += pb * w;
+        w_sum += w;
+    }
+
+    if w_sum > 0.0 {
+        acc_r /= w_sum;
+        acc_g /= w_sum;
+        acc_b /= w_sum;
+    }
+
+    Rgb {
+        r: acc_r.round() as u8,
+        g: acc_g.round() as u8,
+        b: acc_b.round() as u8,
+    }
+}
+
+fn sample_gradient(start: Rgb, mid: Rgb, end: Rgb, t: f32) -> Rgb {
+    let t = smoothstep(t);
+    if t < 0.5 {
+        mix(start, mid, t * 2.0)
+    } else {
+        mix(mid, end, (t - 0.5) * 2.0)
+    }
+}
+
+fn rgb_tuple(t: (u8, u8, u8)) -> Rgb {
+    Rgb {
+        r: t.0,
+        g: t.1,
+        b: t.2,
+    }
+}
+
+fn write_ansi(out: &mut String, color: Rgb) {
+    use std::fmt::Write;
+    let _ = write!(out, "\x1b[38;2;{};{};{}m", color.r, color.g, color.b);
+}
+
+fn smoothstep(t: f32) -> f32 {
+    let t = fract(t);
+    t * t * (3.0 - 2.0 * t)
+}
+
+fn mix(a: Rgb, b: Rgb, t: f32) -> Rgb {
+    Rgb {
+        r: lerp(a.r, b.r, t),
+        g: lerp(a.g, b.g, t),
+        b: lerp(a.b, b.b, t),
+    }
+}
+
+fn lerp(a: u8, b: u8, t: f32) -> u8 {
+    (a as f32 + (b as f32 - a as f32) * t).round() as u8
+}
+
+fn fract(t: f32) -> f32 {
+    t - t.floor()
 }
 
 fn colorize(color: &str, text: &str, reset: &str) -> String {
@@ -150,23 +278,4 @@ fn map(s: &str) -> String {
         _ => "",
     }
     .to_string()
-}
-
-fn color_rgb(name: &str) -> Option<(u8, u8, u8)> {
-    Some(match name {
-        "blue" => (0, 102, 255),
-        "cyan" => (0, 255, 255),
-        "orange" => (255, 135, 0),
-        "red" => (255, 0, 0),
-        "magenta" => (255, 0, 255),
-        "purple" => (180, 0, 255),
-        "white" => (255, 255, 255),
-        "gray" => (128, 128, 128),
-        "dim" => (128, 128, 128),
-        _ => return None,
-    })
-}
-
-fn lerp_u8(a: u8, b: u8, t: f32) -> u8 {
-    (a as f32 + (b as f32 - a as f32) * t).round() as u8
 }

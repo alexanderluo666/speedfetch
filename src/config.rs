@@ -8,7 +8,9 @@ pub struct Config {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct DistroConfig {
+    #[serde(default)]
     pub inherits: String,
+    #[serde(default)]
     pub logo: Vec<String>,
     pub theme: ThemeConfig,
 }

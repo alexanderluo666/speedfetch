@@ -29,7 +29,29 @@ echo $PATH
 cargo build --release
 sudo mv target/release/speedfetch /PATH_IN_ECHO_$PATH
 ```
-+ Test other distros:
++ Test other distros in folder:
 ```bash
 cargo run -- --distro ubuntu
 ```
++ Test other distros globally:
+```bash
+speedfetch --distro ubuntu
+```
+
+## Features
+
++ Animated RGB gradient logos with motion blur (~30 FPS)
++ 70+ distro logos in `src/config.toml` and `src/distro_logos.toml`
++ Gradient presets for 80+ distro IDs (see `src/distro_styles.rs`)
++ Panels: System, Session, Hardware, Display
+
+### Panel fields
+
+| Panel | Fields |
+|-------|--------|
+| System | OS, Host, Kernel, Arch, Init, Packages |
+| Session | User@Host, Shell, Terminal, DE/WM, Uptime, Locale |
+| Hardware | CPU, GPU, Memory, Disk |
+| Display | Resolution, Font |
+
+Press `Ctrl+C` to exit the animation loop.

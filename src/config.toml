@@ -77,3 +77,184 @@ logo = [
 logo = "none"
 label = "none"
 value = "none"
+
+[distro.opensuse]
+inherits = ""
+logo = [
+"  _______                 ",
+" |__   __|                ",
+"    | | ___  ___ _ __ ___ ",
+"    | |/ _ \\/ __| '__/ _ \\",
+"    | | (_) \\__ \\ | | (_) |",
+"    |_|\\___/|___/_|  \\___/ ",
+"                           ",
+]
+
+[distro.opensuse.theme]
+logo = "cyan"
+label = "green"
+value = "white"
+
+[distro.alpine]
+inherits = ""
+logo = [
+"    /\\    ",
+"   /  \\   ",
+"  / /\\ \\  ",
+" / ____ \\ ",
+"/_/    \\_\\",
+"          ",
+]
+
+[distro.alpine.theme]
+logo = "blue"
+label = "cyan"
+value = "white"
+
+[distro.nixos]
+inherits = ""
+logo = [
+"   ___  ",
+"  / _ \\ ",
+" | | | |",
+" | |_| |",
+"  \\___/ ",
+"        ",
+]
+
+[distro.nixos.theme]
+logo = "cyan"
+label = "blue"
+value = "white"
+
+[distro.gentoo]
+inherits = ""
+logo = [
+"   _____           ",
+"  / ____|          ",
+" | |  __  ___ _ __ ",
+" | | |_ |/ _ \\ '__|",
+" | |__| |  __/ |   ",
+"  \\_____|\\___|_|   ",
+"                   ",
+]
+
+[distro.gentoo.theme]
+logo = "purple"
+label = "magenta"
+value = "white"
+
+[distro.void]
+inherits = ""
+logo = [
+"  __   __ ",
+"  \\ \\ / / ",
+"   \\ V /  ",
+"    | |   ",
+"    |_|   ",
+"          ",
+]
+
+[distro.void.theme]
+logo = "cyan"
+label = "dim"
+value = "white"
+
+[distro.solus]
+inherits = ""
+logo = [
+"  _____  ",
+" / ____| ",
+"| (___   ",
+" \\___ \\  ",
+" ____) | ",
+"|_____/  ",
+"         ",
+]
+
+[distro.solus.theme]
+logo = "cyan"
+label = "green"
+value = "white"
+
+[distro.kali]
+inherits = ""
+logo = [
+"  __  __     ",
+" |  \\/  |    ",
+" | \\  / |___ ",
+" | |\\/| / __|",
+" | |  | \\__ \\",
+" |_|  |_|___/ ",
+"              ",
+]
+
+[distro.kali.theme]
+logo = "blue"
+label = "purple"
+value = "white"
+
+[distro.steamos]
+inherits = ""
+logo = [
+"  _______ ",
+" |__   __|",
+"    | |   ",
+"    | |   ",
+"    |_|   ",
+"          ",
+]
+
+[distro.steamos.theme]
+logo = "blue"
+label = "dim"
+value = "white"
+
+[distro.deepin]
+inherits = ""
+logo = [
+"  ____  ",
+" |  _ \\ ",
+" | | | |",
+" | |_| |",
+" |____/ ",
+"        ",
+]
+
+[distro.deepin.theme]
+logo = "blue"
+label = "cyan"
+value = "white"
+
+[distro.elementary]
+inherits = ""
+logo = [
+"  ______ ",
+" |  ____|",
+" | |__   ",
+" |  __|  ",
+" | |____ ",
+" |______|",
+"         ",
+]
+
+[distro.elementary.theme]
+logo = "blue"
+label = "cyan"
+value = "white"
+
+[distro.slackware]
+inherits = ""
+logo = [
+"   _________  ",
+"  / _______/  ",
+" | |          ",
+" | |______     ",
+"  \\_______|   ",
+"              ",
+]
+
+[distro.slackware.theme]
+logo = "blue"
+label = "dim"
+value = "white"
