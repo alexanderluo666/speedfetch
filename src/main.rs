@@ -5,27 +5,23 @@ use unicode_width::UnicodeWidthStr;
 use std::process::Command;
 mod logos;
 mod utils;
+mod theme;
 
 struct Panel {
     title: String,
     items: Vec<String>,
-    width: usize
 }
 
 impl Panel {
     fn new(title: String, items: Vec<String>) -> Self {
-        Self {
-            title,
-            items,
-            width: 0,
-        }
+        Self { title, items }
     }
 
     fn compute_width(&self) -> usize {
         let content_width = self
             .items
             .iter()
-            .map(|s| s.width())
+            .map(|s| utils::strip_ansi(s).width())
             .max()
             .unwrap_or(0);
 
@@ -37,24 +33,29 @@ impl Panel {
     fn render(&self) -> Vec<String> {
         let width = self.compute_width();
         let inner_width = width - 4;
+
         let mut lines = Vec::new();
 
         lines.push(format!("┌{}┐", "─".repeat(width - 2)));
 
         lines.push(format!(
-            "│ {:<width$} │",
+            "│ {:<inner_width$} │",
             self.title,
-            width = inner_width
+            inner_width = inner_width
         ));
 
         lines.push(format!("├{}┤", "─".repeat(width - 2)));
 
         for item in &self.items {
-            lines.push(format!(
-                "│ {:<width$} │",
-                item,
-                width = inner_width
-            ));
+            let visible = utils::strip_ansi(item).width();
+            let padding = inner_width.saturating_sub(visible);
+
+            // IMPORTANT: build final padded string BEFORE wrapping border
+            let mut line = String::new();
+            line.push_str(item);
+            line.push_str(&" ".repeat(padding));
+
+            lines.push(format!("│ {} │", line));
         }
 
         lines.push(format!("└{}┘", "─".repeat(width - 2)));
@@ -159,42 +160,47 @@ fn gpu() -> String {
 }
 
 fn compose() -> Vec<String> {
+    let theme = theme::Theme::fedora();
+
+
     let system_panel = Panel::new(
         "System".to_string(),
         vec![
-            format!("OS: {}", os()),
-            format!("Kernel: {}", kernel()),
-            format!("Shell: {}", shell()),
+            format!("{} {}", theme.label("OS:"), theme.value(&os())),
+            format!("{} {}", theme.label("Kernel:"), theme.value(&kernel())),
+            format!("{} {}", theme.label("Shell:"), theme.value(&shell())),
         ],
     );
-
+    
     let hardware_panel = Panel::new(
         "Hardware".to_string(),
         vec![
-            format!("CPU: {}", cpu()),
-            format!("GPU: {}", gpu()),
-            format!("Memory: {}", memory()),
+            format!("{} {}", theme.label("CPU:"), theme.value(&cpu())),
+            format!("{} {}", theme.label("GPU:"), theme.value(&gpu())),
+            format!("{} {}", theme.label("Memory:"), theme.value(&memory())),
         ],
     );
 
     let session_panel = Panel::new(
         "Session".to_string(),
         vec![
-            format!("Uptime: {} minutes", uptime()),
+            format!("{} {}", theme.label("Uptime:"), theme.value(&uptime())),
         ],
     );
 
-    let logo_lines = logos::logo();
+    let logo_lines = logos::logo()
+        .iter()
+        .map(|line| theme.logo(line))
+        .collect::<Vec<String>>();
 
     let system = system_panel.render();
     let hardware = hardware_panel.render();
     let session = session_panel.render();
 
-
     let mut left_column = Vec::new();
     left_column.extend(logo_lines);
     left_column.extend(session);
-
+    
     let mut right_column = Vec::new();
     right_column.extend(system);
     right_column.extend(hardware);
@@ -223,17 +229,28 @@ fn compose() -> Vec<String> {
     let mut output = Vec::new();
 
     for i in 0..height {
+        let visible_width =
+            utils::strip_ansi(&left_column[i]).width();
+
+        let padding =
+            left_width.saturating_sub(visible_width);
+
+        let left =
+            format!(
+                "{}{}",
+                left_column[i],
+                " ".repeat(padding)
+            );
+
         let line = format!(
-            "{:<left_width$}{}{}",
-            &left_column[i],
+            "{}{}{}",
+            left,
             " ".repeat(gap),
-            &right_column[i],
-            left_width = left_width
+            right_column[i]
         );
 
         output.push(line);
     }
-
     output
 }
 
