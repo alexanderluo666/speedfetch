@@ -1,103 +1,88 @@
+use crate::config::ThemeConfig;
+
+#[derive(Clone)]
 pub struct Theme {
-    logo_color: String,
-    label_color: String,
-    value_color: String,
-    reset: String,
+    pub logo_color: String,
+    pub label_color: String,
+    pub value_color: String,
+    pub reset: String,
+}
+
+pub struct ThemeRegistry {
+    themes: std::collections::HashMap<String, Theme>,
+}
+
+impl ThemeRegistry {
+    pub fn from(config: &crate::config::Config) -> Self {
+        let mut themes = std::collections::HashMap::new();
+
+        for (name, distro) in &config.distro {
+            themes.insert(name.clone(), Theme::from(&distro.theme));
+        }
+
+        Self { themes }
+    }
+
+    pub fn get(&self, distro: &str) -> Theme {
+        self.themes
+            .get(distro)
+            .cloned()
+            .or_else(|| self.themes.get("unknown").cloned())
+            .unwrap_or_else(Theme::plain)
+    }
 }
 
 impl Theme {
-    pub fn new(
-        logo_color: String,
-        label_color: String,
-        value_color: String,
-        reset: String,
-    ) -> Self {
+    pub fn from(cfg: &ThemeConfig) -> Self {
         Self {
-            logo_color,
-            label_color,
-            value_color,
-            reset,
+            logo_color: map(&cfg.logo),
+            label_color: map(&cfg.label),
+            value_color: map(&cfg.value),
+            reset: "\x1b[0m".to_string(),
+        }
+    }
+
+    fn plain() -> Self {
+        Self {
+            logo_color: String::new(),
+            label_color: String::new(),
+            value_color: String::new(),
+            reset: "\x1b[0m".to_string(),
         }
     }
 
     pub fn logo(&self, text: &str) -> String {
-        if self.logo_color.is_empty() {
-            return text.to_string();
-        }
-
-        format!(
-            "{}{}{}",
-            self.logo_color,
-            text,
-            self.reset
-        )
+        colorize(&self.logo_color, text, &self.reset)
     }
 
     pub fn label(&self, text: &str) -> String {
-        if self.label_color.is_empty() {
-            return text.to_string()
-        }
-        format!(
-            "{}{}{}",
-            self.label_color,
-            text,
-            self.reset
-        )
+        colorize(&self.label_color, text, &self.reset)
     }
 
     pub fn value(&self, text: &str) -> String {
-        if self.value_color.is_empty() {
-            return text.to_string()
-        }
-        format!(
-            "{}{}{}",
-            self.value_color,
-            text,
-            self.reset
-        )
+        colorize(&self.value_color, text, &self.reset)
     }
-    pub fn fedora() -> Self {
-        Self::new(
-            "\x1b[34m".to_string(),
-            "\x1b[38;5;208m".to_string(),
-            "\x1b[37m".to_string(),
-            "\x1b[0m".to_string(),
-        )
-    }
+}
 
-    pub fn ubuntu() -> Self {
-        Self::new(
-            "\x1b[38;5;208m".to_string(),
-            "\x1b[35m".to_string(),
-            "\x1b[37m".to_string(),
-            "\x1b[0m".to_string(),
-        )
+fn colorize(color: &str, text: &str, reset: &str) -> String {
+    if color.is_empty() {
+        text.to_string()
+    } else {
+        format!("{color}{text}{reset}")
     }
+}
 
-    pub fn debian() -> Self {
-        Self::new(
-            "\x1b[31m".to_string(),
-            "\x1b[35m".to_string(),
-            "\x1b[37m".to_string(),
-            "\x1b[0m".to_string(),
-        )
+fn map(s: &str) -> String {
+    match s {
+        "blue" => "\x1b[34m",
+        "cyan" => "\x1b[96m",
+        "orange" => "\x1b[38;5;208m",
+        "purple" => "\x1b[35m",
+        "red" => "\x1b[31m",
+        "white" => "\x1b[37m",
+        "dim" => "\x1b[90m",
+        "none" => "",
+        _ => "",
     }
-    
-    pub fn arch() -> Self {
-        Self::new(
-            "\x1b[96m".to_string(), // bright cyan logo
-            "\x1b[90m".to_string(), // dim labels
-            "\x1b[37m".to_string(), // soft white values
-            "\x1b[0m".to_string(),
-        )
-    }
-    
-    pub fn unknown() -> Self {
-        Self::new(
-            "".to_string(),
-            "".to_string(),
-            "".to_string(),
-            "\x1b[0m".to_string(),
-        )
-    }
+    .to_string()
 }

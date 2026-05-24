@@ -31,5 +31,5 @@ sudo mv target/release/speedfetch /PATH_IN_ECHO_$PATH
 ```
 + Test other distros:
 ```bash
-DISTRO=distro cargo run
+cargo run -- --distro ubuntu
 ```

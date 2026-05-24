@@ -1,11 +1,16 @@
-use std::fs;
 use std::env;
-use std::cmp::max;
-use unicode_width::UnicodeWidthStr;
+use std::fs;
 use std::process::Command;
-mod logos;
-mod utils;
+
+use unicode_width::UnicodeWidthStr;
+
+mod config;
+mod distro;
+mod loader;
 mod theme;
+mod utils;
+
+use config::{Config, DistroConfig};
 
 struct Panel {
     title: String,
@@ -159,22 +164,71 @@ fn gpu() -> String {
         .to_string()
 }
 
-fn compose() -> Vec<String> {
-    let branding = logos::branding();
-    let theme = branding.theme;
+fn get_distro() -> String {
+    let mut args = std::env::args();
 
+    while let Some(arg) = args.next() {
+        if arg == "--distro" {
+            return args.next().unwrap_or_else(|| "unknown".to_string());
+        }
+
+        if let Some(v) = arg.strip_prefix("--distro=") {
+            return v.to_string();
+        }
+    }
+
+    distro::distro()
+}
+
+fn resolve_inheritance(
+    config: &Config,
+    entry: DistroConfig,
+) -> DistroConfig {
+    let mut current = entry;
+
+    while !current.inherits.is_empty() {
+        if let Some(parent) = config.distro.get(&current.inherits) {
+            current = parent.clone();
+        } else {
+            break;
+        }
+    }
+
+    current
+}
+
+fn compose() -> Vec<String> {
+    let config = loader::load_config();
+
+    let distro = get_distro();
+
+    let entry = config
+        .distro
+        .get(&distro)
+        .unwrap_or(config.distro.get("unknown").unwrap())
+        .clone();
+
+    let entry = resolve_inheritance(&config, entry);
+
+    let registry = theme::ThemeRegistry::from(&config);
+    let theme = registry.get(&distro);
+
+    let logo_lines = entry.logo
+        .iter()
+        .map(|line| theme.logo(line))
+        .collect::<Vec<String>>();
 
     let system_panel = Panel::new(
-        "System".to_string(),
+        "System".into(),
         vec![
             format!("{} {}", theme.label("OS:"), theme.value(&os())),
             format!("{} {}", theme.label("Kernel:"), theme.value(&kernel())),
             format!("{} {}", theme.label("Shell:"), theme.value(&shell())),
         ],
     );
-    
+
     let hardware_panel = Panel::new(
-        "Hardware".to_string(),
+        "Hardware".into(),
         vec![
             format!("{} {}", theme.label("CPU:"), theme.value(&cpu())),
             format!("{} {}", theme.label("GPU:"), theme.value(&gpu())),
@@ -183,75 +237,50 @@ fn compose() -> Vec<String> {
     );
 
     let session_panel = Panel::new(
-        "Session".to_string(),
+        "Session".into(),
         vec![
             format!("{} {}", theme.label("Uptime:"), theme.value(&uptime())),
         ],
     );
 
-    let logo_lines = branding.logo
-        .iter()
-        .map(|line| theme.logo(line))
-        .collect::<Vec<String>>();
-
     let system = system_panel.render();
     let hardware = hardware_panel.render();
     let session = session_panel.render();
 
-    let mut left_column = Vec::new();
-    left_column.extend(logo_lines);
-    left_column.extend(session);
-    
-    let mut right_column = Vec::new();
-    right_column.extend(system);
-    right_column.extend(hardware);
+    let mut left = Vec::new();
+    left.extend(logo_lines);
+    left.extend(session);
 
-    let height = max(left_column.len(), right_column.len());
+    let mut right = Vec::new();
+    right.extend(system);
+    right.extend(hardware);
 
-    let mut left_width = 0;
+    let height = std::cmp::max(left.len(), right.len());
 
-    for line in &left_column {
-        let line_width = utils::strip_ansi(line).width();
+    let left_width = left
+        .iter()
+        .map(|l| utils::strip_ansi(l).width())
+        .max()
+        .unwrap_or(0);
 
-        if line_width > left_width {
-        left_width = line_width;
-        }
-    }
+    left.resize(height, String::new());
+    right.resize(height, String::new());
 
-    while left_column.len() < height {
-        left_column.push(String::new());
-    }
-
-    while right_column.len() < height {
-        right_column.push(String::new());
-    }
-
-    let gap = 4;
     let mut output = Vec::new();
 
     for i in 0..height {
-        let visible_width =
-            utils::strip_ansi(&left_column[i]).width();
+        let visible = utils::strip_ansi(&left[i]).width();
+        let padding = left_width.saturating_sub(visible);
 
-        let padding =
-            left_width.saturating_sub(visible_width);
+        let left_line = format!("{}{}", left[i], " ".repeat(padding));
 
-        let left =
-            format!(
-                "{}{}",
-                left_column[i],
-                " ".repeat(padding)
-            );
-
-        let line = format!(
-            "{}{}{}",
-            left,
-            " ".repeat(gap),
-            right_column[i]
-        );
-
-        output.push(line);
+        output.push(format!(
+            "{}    {}",
+            left_line,
+            right[i]
+        ));
     }
+
     output
 }
 
